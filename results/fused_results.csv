@@ -1,0 +1,10 @@
+N,impl,median_ms,tflops,max_err,status
+1024,eager,0.2796,7.68,3.25e-03,PASS
+1024,torch_compile,0.3195,6.72,3.25e-03,PASS
+1024,triton_fused,0.2222,9.66,1.95e-03,PASS
+2048,eager,1.0004,17.17,3.77e-03,PASS
+2048,torch_compile,1.0357,16.59,3.77e-03,PASS
+2048,triton_fused,0.9215,18.64,1.96e-03,PASS
+4096,eager,6.4808,21.21,3.84e-03,PASS
+4096,torch_compile,6.4297,21.38,3.84e-03,PASS
+4096,triton_fused,6.846,20.08,1.98e-03,PASS
