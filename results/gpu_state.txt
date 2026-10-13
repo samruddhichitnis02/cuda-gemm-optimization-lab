@@ -1,0 +1,6 @@
+﻿Run started: 2026-10-13T05:48:00.7258266-07:00
+name, uuid, driver_version, power.limit [W], power.draw [W], clocks.max.sm [MHz], clocks.max.memory [MHz], temperature.gpu
+NVIDIA GeForce RTX 3060 Laptop GPU, GPU-20606811-3bb2-e6b5-ec74-b477d9c1d1d8, 610.88, [N/A], 11.97 W, 2100 MHz, 7001 MHz, 38
+Run finished: 2026-10-13T05:48:32.3275042-07:00
+name, uuid, driver_version, power.limit [W], power.draw [W], clocks.max.sm [MHz], clocks.max.memory [MHz], temperature.gpu
+NVIDIA GeForce RTX 3060 Laptop GPU, GPU-20606811-3bb2-e6b5-ec74-b477d9c1d1d8, 610.88, [N/A], 80.06 W, 2100 MHz, 7001 MHz, 48
