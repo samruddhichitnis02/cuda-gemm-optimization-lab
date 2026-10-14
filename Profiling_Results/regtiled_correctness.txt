@@ -1,0 +1,3 @@
+kernel=regtiled N=2048 spot-check max abs err=1.652e-05 -> PASS
+kernel=regtiled N=1000 spot-check max abs err=9.895e-06 -> PASS
+kernel=regtiled N=1023 spot-check max abs err=1.149e-05 -> PASS
