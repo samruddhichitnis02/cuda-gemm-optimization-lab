@@ -5,6 +5,7 @@
 //   cpu_ikj_1thread : single-threaded CPU reference (cache-friendly i-k-j loop order)
 //   naive           : one thread per output element, every operand read from global memory
 //   tiled           : 32x32 shared-memory tiles, one thread per output element
+//   regtiled        : register-tiled: 64x64 block tile, 4x4 outputs per thread
 //   cublas_fp32     : cuBLAS, pure FP32 math (no tensor cores)
 //   cublas_tf32     : cuBLAS, TF32 tensor cores (Ampere or newer)
 //   cublas_fp16     : cuBLAS, FP16 inputs/outputs, FP32 accumulate (tensor cores)
@@ -107,6 +108,88 @@ __global__ void gemm_tiled(const float* A, const float* B, float* C, int n) {
     __syncthreads();  // everyone done reading before the next tile overwrites it
   }
   if (row < n && col < n) C[(size_t)row * n + col] = acc;
+}
+
+// Register-tiled: a 16x16 block (256 threads) computes a 64x64 tile of C and each
+// thread computes a 4x4 block of outputs, keeping its 16 running sums in registers.
+// Per k step a thread loads 4 values of A and 4 of B from shared memory (8 loads) and
+// does 16 multiply-adds: 0.5 shared loads per multiply-add instead of 2 in gemm_tiled.
+// A thread's rows are ty, ty+16, ty+32, ty+48 and its columns tx, tx+16, tx+32, tx+48,
+// so neighbouring threads touch neighbouring shared-memory addresses (no bank
+// conflicts). Out-of-range loads read 0 and out-of-range stores are skipped, so any n works.
+constexpr int RT_BM = 64;   // rows of C per block
+constexpr int RT_BN = 64;   // columns of C per block
+constexpr int RT_BK = 16;   // K values per step
+constexpr int RT_TM = 4;    // rows of C per thread
+constexpr int RT_TN = 4;    // columns of C per thread
+constexpr int RT_DIM = 16;  // threads per block side (16 x 16 = 256 threads)
+
+__global__ void __launch_bounds__(RT_DIM * RT_DIM)
+gemm_regtiled(const float* A, const float* B, float* C, int n) {
+  __shared__ float As[RT_BM][RT_BK];
+  __shared__ float Bs[RT_BK][RT_BN];
+
+  const int tx = threadIdx.x;
+  const int ty = threadIdx.y;
+  const int tid = ty * RT_DIM + tx;
+  const int block_row = blockIdx.y * RT_BM;
+  const int block_col = blockIdx.x * RT_BN;
+
+  float acc[RT_TM][RT_TN];
+#pragma unroll
+  for (int i = 0; i < RT_TM; ++i)
+#pragma unroll
+    for (int j = 0; j < RT_TN; ++j) acc[i][j] = 0.0f;
+
+  for (int k0 = 0; k0 < n; k0 += RT_BK) {
+    // A tile (64 x 16 = 1024 values, 4 per thread); consecutive threads read
+    // consecutive k, so global reads are coalesced.
+#pragma unroll
+    for (int s = 0; s < (RT_BM * RT_BK) / (RT_DIM * RT_DIM); ++s) {
+      const int idx = tid + s * RT_DIM * RT_DIM;
+      const int m = idx / RT_BK;
+      const int k = idx % RT_BK;
+      const int gr = block_row + m;
+      const int gc = k0 + k;
+      As[m][k] = (gr < n && gc < n) ? A[(size_t)gr * n + gc] : 0.0f;
+    }
+    // B tile (16 x 64 = 1024 values, 4 per thread).
+#pragma unroll
+    for (int s = 0; s < (RT_BK * RT_BN) / (RT_DIM * RT_DIM); ++s) {
+      const int idx = tid + s * RT_DIM * RT_DIM;
+      const int k = idx / RT_BN;
+      const int c = idx % RT_BN;
+      const int gr = k0 + k;
+      const int gc = block_col + c;
+      Bs[k][c] = (gr < n && gc < n) ? B[(size_t)gr * n + gc] : 0.0f;
+    }
+    __syncthreads();  // both tiles fully loaded before anyone reads them
+
+#pragma unroll
+    for (int k = 0; k < RT_BK; ++k) {
+      float a[RT_TM];
+      float b[RT_TN];
+#pragma unroll
+      for (int i = 0; i < RT_TM; ++i) a[i] = As[ty + i * RT_DIM][k];
+#pragma unroll
+      for (int j = 0; j < RT_TN; ++j) b[j] = Bs[k][tx + j * RT_DIM];
+#pragma unroll
+      for (int i = 0; i < RT_TM; ++i)
+#pragma unroll
+        for (int j = 0; j < RT_TN; ++j) acc[i][j] += a[i] * b[j];
+    }
+    __syncthreads();  // everyone done reading before the next tiles overwrite them
+  }
+
+#pragma unroll
+  for (int i = 0; i < RT_TM; ++i) {
+    const int r = block_row + ty + i * RT_DIM;
+#pragma unroll
+    for (int j = 0; j < RT_TN; ++j) {
+      const int c = block_col + tx + j * RT_DIM;
+      if (r < n && c < n) C[(size_t)r * n + c] = acc[i][j];
+    }
+  }
 }
 
 __global__ void float_to_half(const float* in, __half* out, size_t count) {
@@ -359,6 +442,17 @@ int main(int argc, char** argv) {
       bench_float("tiled",
                   [&] {
                     gemm_tiled<<<grid, block>>>(dA, dB, dC, n);
+                    CUDA_CHECK(cudaGetLastError());
+                  },
+                  1e-4, true);
+    }
+
+    {
+      dim3 block(RT_DIM, RT_DIM);
+      dim3 grid((n + RT_BN - 1) / RT_BN, (n + RT_BM - 1) / RT_BM);
+      bench_float("regtiled",
+                  [&] {
+                    gemm_regtiled<<<grid, block>>>(dA, dB, dC, n);
                     CUDA_CHECK(cudaGetLastError());
                   },
                   1e-4, true);

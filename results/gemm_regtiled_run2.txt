@@ -1,0 +1,66 @@
+Device: NVIDIA GeForce RTX 3060 Laptop GPU | SMs: 30 | compute capability 8.6 | 6.00 GB
+Reference FP32 peak for % column: 13.08 TFLOPS
+
+N     impl                median_ms       GFLOPS       GB/s  max_err   status
+256   cpu_ikj_1thread        2.6385         12.7          -  -         reference
+256   h2d_pageable           0.0855            -       6.13  -         measured
+256   d2h_pageable           0.0685            -       3.83  -         measured
+256   h2d_pinned             0.0933            -       5.62  -         measured
+256   d2h_pinned             0.0546            -       4.80  -         measured
+256   cublas_fp32            0.0236       1424.7          -  6.91e-07  PASS
+256   cublas_tf32            0.0576        582.2          -  2.75e-04  PASS
+256   naive                  0.0478        701.9          -  3.46e-07  PASS
+256   tiled                  0.0491        684.0          -  3.46e-07  PASS
+256   regtiled               0.0266       1260.3          -  3.46e-07  PASS
+256   cublas_fp16            0.0215       1560.4          -  3.85e-04  PASS
+
+512   cpu_ikj_1thread       20.5163         13.1          -  -         reference
+512   h2d_pageable           0.3128            -       6.71  -         measured
+512   d2h_pageable           0.1998            -       5.25  -         measured
+512   h2d_pinned             0.1925            -      10.90  -         measured
+512   d2h_pinned             0.0985            -      10.65  -         measured
+512   cublas_fp32            0.0684       3927.3          -  1.22e-06  PASS
+512   cublas_tf32            0.0562       4779.8          -  2.55e-04  PASS
+512   naive                  0.3041        882.6          -  3.32e-07  PASS
+512   tiled                  0.2560       1048.6          -  3.32e-07  PASS
+512   regtiled               0.0963       2788.8          -  3.32e-07  PASS
+512   cublas_fp16            0.0358       7489.8          -  4.01e-04  PASS
+
+1024  cpu_ikj_1thread      195.7925         11.0          -  -         reference
+1024  h2d_pageable           0.8408            -       9.98  -         measured
+1024  d2h_pageable           0.5039            -       8.32  -         measured
+1024  h2d_pinned             0.6847            -      12.25  -         measured
+1024  d2h_pinned             0.3389            -      12.37  -         measured
+1024  cublas_fp32            0.3625       5924.2          -  1.55e-06  PASS
+1024  cublas_tf32            0.2836       7573.5          -  2.69e-04  PASS
+1024  naive                  3.2950        651.7          -  4.42e-07  PASS
+1024  tiled                  2.5876        829.9          -  4.42e-07  PASS
+1024  regtiled               0.5702       3766.1          -  4.42e-07  PASS
+1024  cublas_fp16            0.1843      11650.8          -  4.25e-04  PASS
+
+2048  cpu_ikj_1thread     1817.2967          9.5          -  -         reference
+2048  h2d_pageable           3.3295            -      10.08  -         measured
+2048  d2h_pageable           1.7545            -       9.56  -         measured
+2048  h2d_pinned             2.6506            -      12.66  -         measured
+2048  d2h_pinned             1.2899            -      13.01  -         measured
+2048  cublas_fp32            2.6143       6571.6          -  4.92e-07  PASS
+2048  cublas_tf32            1.7684       9714.7          -  2.60e-04  PASS
+2048  naive                 25.8673        664.2          -  4.92e-07  PASS
+2048  tiled                 17.8207        964.0          -  4.92e-07  PASS
+2048  regtiled               4.8731       3525.4          -  4.92e-07  PASS
+2048  cublas_fp16            0.8796      19531.1          -  4.76e-04  PASS
+
+4096  cpu_ikj_1thread    18771.4576          7.3          -  -         reference
+4096  h2d_pageable          17.5985            -       7.63  -         measured
+4096  d2h_pageable           9.1083            -       7.37  -         measured
+4096  h2d_pinned            10.5779            -      12.69  -         measured
+4096  d2h_pinned             5.2431            -      12.80  -         measured
+4096  cublas_fp32           26.4172       5202.6          -  3.54e-06  PASS
+4096  cublas_tf32           11.7473      11699.6          -  2.71e-04  PASS
+4096  naive                212.4278        647.0          -  6.13e-07  PASS
+4096  tiled                142.6544        963.4          -  6.13e-07  PASS
+4096  regtiled              43.0684       3191.2          -  6.13e-07  PASS
+4096  cublas_fp16            5.2316      26271.2          -  4.38e-04  PASS
+
+All correctness checks PASSED.
+Results written to ..\results\gemm_regtiled_run2.csv
