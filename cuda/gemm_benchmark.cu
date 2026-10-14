@@ -6,6 +6,7 @@
 //   naive           : one thread per output element, every operand read from global memory
 //   tiled           : 32x32 shared-memory tiles, one thread per output element
 //   regtiled        : register-tiled: 64x64 block tile, 4x4 outputs per thread
+//   regtiled_vec    : regtiled + transposed padded A tile + float4 shared loads
 //   cublas_fp32     : cuBLAS, pure FP32 math (no tensor cores)
 //   cublas_tf32     : cuBLAS, TF32 tensor cores (Ampere or newer)
 //   cublas_fp16     : cuBLAS, FP16 inputs/outputs, FP32 accumulate (tensor cores)
@@ -188,6 +189,92 @@ gemm_regtiled(const float* A, const float* B, float* C, int n) {
     for (int j = 0; j < RT_TN; ++j) {
       const int c = block_col + tx + j * RT_DIM;
       if (r < n && c < n) C[(size_t)r * n + c] = acc[i][j];
+    }
+  }
+}
+
+// ---------------------------------------------------------------------------
+// A5 change 1: vectorized shared-memory loads.
+//
+// Same 64x64 block tile, 16x16 threads, BK = 16, 4x4 outputs per thread as
+// gemm_regtiled. Two things change:
+//   (a) the A tile is stored TRANSPOSED in shared memory (As[k][m]) with 4 floats of
+//       padding per row, so a thread's 4 A values sit next to each other and one
+//       128-bit load reads them
+//   (b) a thread owns a contiguous 4x4 block (rows ty*4..ty*4+3, cols tx*4..tx*4+3)
+//       instead of rows ty, ty+16, ty+32, ty+48, so its 4 B values are contiguous too
+// Per k step: 2 float4 shared loads instead of 8 scalar loads, same 16 multiply-adds.
+// ---------------------------------------------------------------------------
+constexpr int RV_LDA = RT_BM + 4;  // padded row length (floats) of the transposed A tile
+
+__global__ void __launch_bounds__(RT_DIM * RT_DIM, 4)
+gemm_regtiled_vec(const float* A, const float* B, float* C, int n) {
+  __shared__ __align__(16) float As[RT_BK][RV_LDA];  // transposed: As[k][m]
+  __shared__ __align__(16) float Bs[RT_BK][RT_BN];
+
+  const int tx = threadIdx.x;
+  const int ty = threadIdx.y;
+  const int tid = ty * RT_DIM + tx;
+  const int block_row = blockIdx.y * RT_BM;
+  const int block_col = blockIdx.x * RT_BN;
+
+  float acc[RT_TM][RT_TN];
+#pragma unroll
+  for (int i = 0; i < RT_TM; ++i)
+#pragma unroll
+    for (int j = 0; j < RT_TN; ++j) acc[i][j] = 0.0f;
+
+  for (int k0 = 0; k0 < n; k0 += RT_BK) {
+    // A tile (64 x 16): global reads stay coalesced, the shared store is transposed.
+#pragma unroll
+    for (int s = 0; s < (RT_BM * RT_BK) / (RT_DIM * RT_DIM); ++s) {
+      const int idx = tid + s * RT_DIM * RT_DIM;
+      const int m = idx / RT_BK;
+      const int k = idx % RT_BK;
+      const int gr = block_row + m;
+      const int gc = k0 + k;
+      As[k][m] = (gr < n && gc < n) ? A[(size_t)gr * n + gc] : 0.0f;
+    }
+    // B tile (16 x 64): unchanged.
+#pragma unroll
+    for (int s = 0; s < (RT_BK * RT_BN) / (RT_DIM * RT_DIM); ++s) {
+      const int idx = tid + s * RT_DIM * RT_DIM;
+      const int k = idx / RT_BN;
+      const int c = idx % RT_BN;
+      const int gr = k0 + k;
+      const int gc = block_col + c;
+      Bs[k][c] = (gr < n && gc < n) ? B[(size_t)gr * n + gc] : 0.0f;
+    }
+    __syncthreads();
+
+#pragma unroll
+    for (int k = 0; k < RT_BK; ++k) {
+      const float4 a4 = *reinterpret_cast<const float4*>(&As[k][ty * 4]);
+      const float4 b4 = *reinterpret_cast<const float4*>(&Bs[k][tx * 4]);
+      const float a[RT_TM] = {a4.x, a4.y, a4.z, a4.w};
+      const float b[RT_TN] = {b4.x, b4.y, b4.z, b4.w};
+#pragma unroll
+      for (int i = 0; i < RT_TM; ++i)
+#pragma unroll
+        for (int j = 0; j < RT_TN; ++j) acc[i][j] += a[i] * b[j];
+    }
+    __syncthreads();
+  }
+
+  // 4 contiguous floats per row. Vector store only when n is a multiple of 4 and the
+  // whole group is in range; otherwise guarded scalar stores, so any n works.
+#pragma unroll
+  for (int i = 0; i < RT_TM; ++i) {
+    const int r = block_row + ty * 4 + i;
+    const int c = block_col + tx * 4;
+    if (r >= n) continue;
+    if (((n & 3) == 0) && c + 3 < n) {
+      *reinterpret_cast<float4*>(&C[(size_t)r * n + c]) =
+          make_float4(acc[i][0], acc[i][1], acc[i][2], acc[i][3]);
+    } else {
+#pragma unroll
+      for (int j = 0; j < RT_TN; ++j)
+        if (c + j < n) C[(size_t)r * n + c + j] = acc[i][j];
     }
   }
 }
@@ -453,6 +540,17 @@ int main(int argc, char** argv) {
       bench_float("regtiled",
                   [&] {
                     gemm_regtiled<<<grid, block>>>(dA, dB, dC, n);
+                    CUDA_CHECK(cudaGetLastError());
+                  },
+                  1e-4, true);
+    }
+
+    {
+      dim3 block(RT_DIM, RT_DIM);
+      dim3 grid((n + RT_BN - 1) / RT_BN, (n + RT_BM - 1) / RT_BM);
+      bench_float("regtiled_vec",
+                  [&] {
+                    gemm_regtiled_vec<<<grid, block>>>(dA, dB, dC, n);
                     CUDA_CHECK(cudaGetLastError());
                   },
                   1e-4, true);

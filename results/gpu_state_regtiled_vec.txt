@@ -1,0 +1,6 @@
+Session start: 2026-10-13T19:41:21.9103650-07:00
+name, power.limit [W], power.draw [W], clocks.max.sm [MHz], temperature.gpu
+NVIDIA GeForce RTX 3060 Laptop GPU, [N/A], 12.14 W, 2100 MHz, 40
+Session end: 2026-10-13T19:44:37.5063684-07:00
+name, power.limit [W], power.draw [W], clocks.max.sm [MHz], temperature.gpu
+NVIDIA GeForce RTX 3060 Laptop GPU, [N/A], 16.44 W, 2100 MHz, 47

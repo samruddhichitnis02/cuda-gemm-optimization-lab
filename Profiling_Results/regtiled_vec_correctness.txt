@@ -1,0 +1,3 @@
+kernel=regtiled_vec N=2048 spot-check max abs err=2.396e-05 -> PASS
+kernel=regtiled_vec N=1000 spot-check max abs err=9.990e-06 -> PASS
+kernel=regtiled_vec N=1023 spot-check max abs err=9.284e-06 -> PASS
