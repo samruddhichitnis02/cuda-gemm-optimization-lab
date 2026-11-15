@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="414" viewBox="0 0 960 414" role="img" aria-label="Profiler: instructions executed 1467, 861, 465, 412 million; share of FP32 peak about 7, 7, 31, 43 percent"><title>Profiler: instructions executed 1467, 861, 465, 412 million; share of FP32 peak about 7, 7, 31, 43 percent</title>
+<style>
+svg{--surface:#fcfcfb;--wash:#f0efec;--ink:#0b0b0b;--ink2:#52514e;--muted:#898781;
+--grid:#e1e0d9;--axis:#c3c2b7;--border:rgba(11,11,11,.12);
+--k1:#86b6ef;--k2:#5598e7;--k3:#2a78d6;--k4:#1c5cab;--ref:#a8a7a0;
+--s1:#2a78d6;--s2:#eb6834;--hl:rgba(42,120,214,.22)}
+@media (prefers-color-scheme:dark){svg{--surface:#1a1a19;--wash:#262624;--ink:#f0efec;--ink2:#c3c2b7;
+--muted:#898781;--grid:#2c2c2a;--axis:#4a4a46;--border:rgba(255,255,255,.12);
+--k1:#184f95;--k2:#256abf;--k3:#3987e5;--k4:#86b6ef;--ref:#6b6a65;
+--s1:#3987e5;--s2:#d95926;--hl:rgba(57,135,229,.30)}}
+text{font-family:system-ui,-apple-system,"Segoe UI",Helvetica,Arial,sans-serif;fill:var(--ink)}
+.title{font-size:22px;font-weight:700}
+.sub{font-size:14px;fill:var(--ink2)}
+.h{font-size:15px;font-weight:700}
+.lbl{font-size:13px;fill:var(--ink2)}
+.val{font-size:13px;font-weight:600;fill:var(--ink)}
+.sm{font-size:12px;fill:var(--muted)}
+.tick{font-size:12px;fill:var(--muted);font-variant-numeric:tabular-nums}
+.big{font-size:34px;font-weight:800;fill:var(--ink)}
+.bg{fill:var(--surface);stroke:var(--border)}
+.wash{fill:var(--wash)}
+.grid{stroke:var(--grid);stroke-width:1}
+.axis{stroke:var(--axis);stroke-width:1}
+.cell{fill:var(--surface);stroke:var(--axis);stroke-width:1}
+.box{fill:var(--wash);stroke:var(--axis);stroke-width:1.5}
+.track{stroke:var(--axis);stroke-width:1.5;stroke-dasharray:4 5;fill:none}
+.k1{fill:var(--k1)}.k2{fill:var(--k2)}.k3{fill:var(--k3)}.k4{fill:var(--k4)}
+.ref{fill:var(--ref)}.s1{fill:var(--s1)}.s2{fill:var(--s2)}
+.hl{fill:var(--hl);stroke:var(--k3);stroke-width:2}
+.growx{transform-box:fill-box;transform-origin:left center;animation:growx 1.1s cubic-bezier(.2,.7,.2,1) backwards}
+.growy{transform-box:fill-box;transform-origin:center bottom;animation:growy 1.1s cubic-bezier(.2,.7,.2,1) backwards}
+.fade{animation:fade .6s ease-out backwards}
+.rise{animation:rise .7s cubic-bezier(.2,.7,.2,1) backwards}
+@keyframes growx{from{transform:scaleX(0)}}
+@keyframes growy{from{transform:scaleY(0)}}
+@keyframes fade{from{opacity:0}}
+@keyframes rise{from{opacity:0;transform:translateY(10px)}}
+
+@media (prefers-reduced-motion:reduce){*{animation:none!important}}
+</style>
+<rect class="bg" x="0.5" y="0.5" width="959" height="413" rx="14"/><text x="32.0" y="40.0" class="title" text-anchor="start" dominant-baseline="middle" >What the profiler showed (Nsight Compute, N = 2048)</text><text x="32.0" y="68.0" class="sub" text-anchor="start" dominant-baseline="middle" >Why it got faster: less work spent fetching, more of the GPU's math power used</text><text x="32.0" y="108.0" class="h" text-anchor="start" dominant-baseline="middle" >Instructions the GPU had to run</text><text x="32.0" y="128.0" class="sm" text-anchor="start" dominant-baseline="middle" >millions · lower is better</text><line class="axis" x1="32" x2="460" y1="340" y2="340"/><path d="M57.5,340.0 V188.1 Q57.5,184.1 61.5,184.1 H109.5 Q113.5,184.1 113.5,188.1 V340.0 Z" class="k1 growy" style="animation-delay:0.20s"/><g class="fade" style="animation-delay:1.00s"><text x="85.5" y="172.1" class="val" text-anchor="middle" dominant-baseline="middle" >1,467 M</text></g><text x="85.5" y="358.0" class="lbl" text-anchor="middle" dominant-baseline="middle" >Naive</text><path d="M164.5,340.0 V252.5 Q164.5,248.5 168.5,248.5 H216.5 Q220.5,248.5 220.5,252.5 V340.0 Z" class="k2 growy" style="animation-delay:0.32s"/><g class="fade" style="animation-delay:1.12s"><text x="192.5" y="236.5" class="val" text-anchor="middle" dominant-baseline="middle" >861 M</text></g><text x="192.5" y="358.0" class="lbl" text-anchor="middle" dominant-baseline="middle" >Tiled</text><path d="M271.5,340.0 V294.6 Q271.5,290.6 275.5,290.6 H323.5 Q327.5,290.6 327.5,294.6 V340.0 Z" class="k3 growy" style="animation-delay:0.44s"/><g class="fade" style="animation-delay:1.24s"><text x="299.5" y="278.6" class="val" text-anchor="middle" dominant-baseline="middle" >465 M</text></g><text x="299.5" y="358.0" class="lbl" text-anchor="middle" dominant-baseline="middle" >Reg. tiling</text><path d="M378.5,340.0 V300.2 Q378.5,296.2 382.5,296.2 H430.5 Q434.5,296.2 434.5,300.2 V340.0 Z" class="k4 growy" style="animation-delay:0.56s"/><g class="fade" style="animation-delay:1.36s"><text x="406.5" y="284.2" class="val" text-anchor="middle" dominant-baseline="middle" >412 M</text></g><text x="406.5" y="358.0" class="lbl" text-anchor="middle" dominant-baseline="middle" >+ float4</text><text x="500.0" y="108.0" class="h" text-anchor="start" dominant-baseline="middle" >Share of the GPU's math power used</text><text x="500.0" y="128.0" class="sm" text-anchor="start" dominant-baseline="middle" >% of FP32 peak · higher is better</text><line class="axis" x1="500" x2="928" y1="340" y2="340"/><path d="M525.5,340.0 V320.2 Q525.5,316.2 529.5,316.2 H577.5 Q581.5,316.2 581.5,320.2 V340.0 Z" class="k1 growy" style="animation-delay:0.70s"/><g class="fade" style="animation-delay:1.50s"><text x="553.5" y="304.2" class="val" text-anchor="middle" dominant-baseline="middle" >~7%</text></g><text x="553.5" y="358.0" class="lbl" text-anchor="middle" dominant-baseline="middle" >Naive</text><path d="M632.5,340.0 V320.2 Q632.5,316.2 636.5,316.2 H684.5 Q688.5,316.2 688.5,320.2 V340.0 Z" class="k2 growy" style="animation-delay:0.82s"/><g class="fade" style="animation-delay:1.62s"><text x="660.5" y="304.2" class="val" text-anchor="middle" dominant-baseline="middle" >~7%</text></g><text x="660.5" y="358.0" class="lbl" text-anchor="middle" dominant-baseline="middle" >Tiled</text><path d="M739.5,340.0 V238.6 Q739.5,234.6 743.5,234.6 H791.5 Q795.5,234.6 795.5,238.6 V340.0 Z" class="k3 growy" style="animation-delay:0.94s"/><g class="fade" style="animation-delay:1.74s"><text x="767.5" y="222.6" class="val" text-anchor="middle" dominant-baseline="middle" >31%</text></g><text x="767.5" y="358.0" class="lbl" text-anchor="middle" dominant-baseline="middle" >Reg. tiling</text><path d="M846.5,340.0 V197.8 Q846.5,193.8 850.5,193.8 H898.5 Q902.5,193.8 902.5,197.8 V340.0 Z" class="k4 growy" style="animation-delay:1.06s"/><g class="fade" style="animation-delay:1.86s"><text x="874.5" y="181.8" class="val" text-anchor="middle" dominant-baseline="middle" >43%</text></g><text x="874.5" y="358.0" class="lbl" text-anchor="middle" dominant-baseline="middle" >+ float4</text><text x="480.0" y="394.0" class="sm" text-anchor="middle" dominant-baseline="middle" >The profiler locks the GPU clock at about 0.9 GHz, so its timings differ from the benchmark.</text></svg>
