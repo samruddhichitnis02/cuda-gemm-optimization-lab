@@ -262,12 +262,12 @@ flowchart TD
 
 ## How I measured (fairly)
 
-- ⏱️ Timed on the GPU with **CUDA events**, after **warm-up** runs.
-- 🔁 Every result is the **median of repeated runs**, and each experiment was run **3 to 4 full times**. Ranges are reported.
-- ✅ Every result is **checked for correctness** before its timing counts.
-- 📦 Copying data between CPU and GPU is **timed separately** from the kernel.
-- 🖥️ GPU state (`nvidia-smi`) and compiler version (`nvcc --version`) are saved with each run in [results/](results/).
-- 🚫 Small sizes (N ≤ 512) are left out of comparisons because the runs are too short to time reliably.
+- Timed on the GPU with **CUDA events**, after **warm-up** runs.
+- Every result is the **median of repeated runs**, and each experiment was run **3 to 4 full times**. Ranges are reported.
+- Every result is **checked for correctness** before its timing counts.
+- Copying data between CPU and GPU is **timed separately** from the kernel.
+- GPU state (`nvidia-smi`) and compiler version (`nvcc --version`) are saved with each run in [results/](results/).
+- Small sizes (N ≤ 512) are left out of comparisons because the runs are too short to time reliably.
 
 **Hardware / software:** RTX 3060 Laptop GPU (30 SMs, compute capability 8.6, 6 GB), CUDA 13.1, Nsight Compute 2025.4.1, PyTorch 2.11 (cu128), Triton 3.8.0, Windows. FP32 peak used for percentages: 13.08 TFLOPS.
 
