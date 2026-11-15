@@ -77,10 +77,10 @@ If a cook walks to the storeroom for **every single ingredient**, most of their 
 
 ```mermaid
 flowchart LR
-    A["🐢 Naive<br/>645 GFLOPS"] -->|"share data with<br/>a team"| B["📦 Shared-memory tiles<br/>970 GFLOPS"]
-    B -->|"each thread does<br/>16 answers"| C["✋ Register tiling<br/>3,173 GFLOPS"]
-    C -->|"grab 4 numbers<br/>at once"| D["🚀 + float4 loads<br/>3,375 GFLOPS"]
-    D -.->|"target"| E["🏆 NVIDIA cuBLAS<br/>5,119 GFLOPS"]
+    A["Naive<br/>645 GFLOPS"] -->|"share data with<br/>a team"| B["Shared-memory tiles<br/>970 GFLOPS"]
+    B -->|"each thread does<br/>16 answers"| C["Register tiling<br/>3,173 GFLOPS"]
+    C -->|"grab 4 numbers<br/>at once"| D["float4 loads<br/>3,375 GFLOPS"]
+    D -.->|"target"| E["NVIDIA cuBLAS<br/>5,119 GFLOPS"]
     style A fill:#86b6ef,color:#0b0b0b
     style B fill:#5598e7,color:#fff
     style C fill:#2a78d6,color:#fff
@@ -136,7 +136,7 @@ Same plan, but instead of grabbing numbers one at a time, a thread grabs **4 at 
 
 <sub>GFLOPS, median of 3 runs. Source: <code>results/gemm_regtiled_vec_run1..3.csv</code>.</sub>
 
-✅ **Every version gives the correct answer.** Each one is checked against a CPU result before its time is counted. The best kernel was also tested on awkward sizes (1000 and 1023, which don't divide evenly into tiles) and passed every check.
+**Every version gives the correct answer.** Each one is checked against a CPU result before its time is counted. The best kernel was also tested on awkward sizes (1000 and 1023, which don't divide evenly into tiles) and passed every check.
 
 ---
 
@@ -155,7 +155,7 @@ What the profiler told me, in plain words:
 | Register tiling | Shared-memory requests cut by 4× and total instructions cut nearly in half. Math use jumped from **~7% to 31%**. |
 | + float4 | Shared-load instructions dropped from **83.9 M to 33.6 M**. Math use rose to **43%**. |
 
-### 🔬 I made a prediction, and it was partly wrong
+### I made a prediction, and it was partly wrong
 
 Before step 4, I wrote down a [hypothesis](Profiling_Results/profile_hypothesis.md): *"register tiling issues 8 separate loads per step, and float4 will cut it to 2."*
 
@@ -237,7 +237,7 @@ flowchart TD
 
 ---
 
-## Glossary (in plain words)
+## Glossary
 
 | Word | Meaning |
 |---|---|
